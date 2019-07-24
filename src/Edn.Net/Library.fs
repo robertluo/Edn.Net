@@ -80,13 +80,13 @@ module Edn =
 
     let emap = listBetween "{" "}" keyValue (Map.ofList >> EMap)
 
-    do evalueRef := choice [ebool
-                            enull
-                            efloat
-                            emap
-                            evector
-                            eset
-                            ekeyword
-                            estring]
+    do evalueRef := ws >>. choice [ebool
+                                   enull
+                                   efloat
+                                   emap
+                                   evector
+                                   eset
+                                   ekeyword
+                                   estring] .>> ws
 
     let Parse = run evalue
