@@ -15,7 +15,6 @@ module Edn =
 
     type Edn = EString of string
              | EFloat of float
-             | EInt of int64
              | ENull
              | EBool of bool
              | EKeyword of Keyword
@@ -33,8 +32,6 @@ module Edn =
                                     <|> (stringReturn "false" (EBool false))
 
     let efloat: EdnParser = pfloat |>> EFloat
-
-    let enumber: EdnParser = pint64 |>> EInt
 
     // -------------- string ------------------------
     let str s = pstring s
@@ -83,8 +80,7 @@ module Edn =
 
     let emap = listBetween "{" "}" keyValue (Map.ofList >> EMap)
 
-    do evalueRef := choice [enumber
-                            ebool
+    do evalueRef := choice [ebool
                             enull
                             efloat
                             emap
