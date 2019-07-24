@@ -21,6 +21,7 @@ module Edn =
              | EComment of string
              | EKeyword of Keyword
              | EVector of Edn list
+             | ESet of Set<Edn>
              | EMap of Map<Edn, Edn>
 
     type EdnParser = Parser<Edn, unit>
@@ -67,12 +68,15 @@ module Edn =
 
     let evector = listBetween "[" "]" evalue EVector           
 
+    let eset = listBetween "#{" "}" evalue (Set.ofList >> ESet)
+
     let keyValue = evalue .>>. (ws >>. evalue)
 
     let emap = listBetween "{" "}" keyValue (Map.ofList >> EMap)
 
     do evalueRef := choice [emap
                             evector
+                            eset
                             ebool
                             enull
                             enumber
