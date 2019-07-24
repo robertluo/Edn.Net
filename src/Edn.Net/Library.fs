@@ -57,6 +57,14 @@ module Edn =
 
     let estring = stringLiteral |>> EString
 
+    //--------------- keyword -----------------
+    let name = many (letter <|> anyOf "-_*?!$%&=><") |>> (List.toArray >> (System.String))
+    let ekeyword :EdnParser = ((str ":") >>. name .>> optional (str "/")) .>>. name 
+                                |>> (fun p ->
+                                        match p with
+                                        | (sym, "") -> EKeyword {ns = None; symbol = sym}
+                                        | (ns, sym) -> EKeyword {ns = Some ns; symbol = sym})
+
     // forward declare
     let evalue, evalueRef = createParserForwardedToRef<Edn, unit>()
 
@@ -80,5 +88,6 @@ module Edn =
                             ebool
                             enull
                             enumber
+                            ekeyword
                             efloat
                             estring]
