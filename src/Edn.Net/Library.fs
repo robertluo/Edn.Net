@@ -88,3 +88,5 @@ module Edn =
                             eset
                             ekeyword
                             estring]
+
+    let Parse = run evalue
