@@ -1,0 +1,2 @@
+source https://www.nuget.org/api/v2
+nuget FParseC 1.0.4-RC3 RC
