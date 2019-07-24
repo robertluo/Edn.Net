@@ -18,7 +18,6 @@ module Edn =
              | EInt of int64
              | ENull
              | EBool of bool
-             | EComment of string
              | EKeyword of Keyword
              | EVector of Edn list
              | ESet of Set<Edn>
@@ -57,6 +56,8 @@ module Edn =
 
     let estring = stringLiteral |>> EString
 
+    let comment = str ";" >>. skipRestOfLine true
+
     //--------------- keyword -----------------
     let name = many (letter <|> anyOf "-_*?!$%&=><") |>> (List.toArray >> (System.String))
     let ekeyword :EdnParser = ((str ":") >>. name .>> optional (str "/")) .>>. name 
@@ -68,7 +69,7 @@ module Edn =
     // forward declare
     let evalue, evalueRef = createParserForwardedToRef<Edn, unit>()
 
-    let ws = (many (anyOf " ,\t\n\r")) |>> ignore
+    let ws = skipSepBy (many (anyOf " ,\t\n\r")) comment  
 
     let listBetween sopen sclose pElement f =
         between (str sopen) (str sclose)
@@ -82,12 +83,12 @@ module Edn =
 
     let emap = listBetween "{" "}" keyValue (Map.ofList >> EMap)
 
-    do evalueRef := choice [emap
-                            evector
-                            eset
+    do evalueRef := choice [enumber
                             ebool
                             enull
-                            enumber
-                            ekeyword
                             efloat
+                            emap
+                            evector
+                            eset
+                            ekeyword
                             estring]
