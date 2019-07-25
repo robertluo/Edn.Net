@@ -1,5 +1,20 @@
 ﻿namespace Robertluo
 
+type Keyword = {
+    Ns: string option
+    Name: string
+}
+
+type Edn = EString of string
+         | EFloat of float
+         | ENull
+         | EBool of bool
+         | EKeyword of Keyword
+         | EVector of Edn list
+         | ESet of Set<Edn>
+         | EMap of Map<Edn, Edn>
+
+[<RequireQualifiedAccessAttribute>]
 module Edn =
     open FParsec
 
@@ -8,30 +23,14 @@ module Edn =
         | Success(result, _, _) -> printfn "Success: %A" result
         | Failure(errorMsg, _, _) -> printfn "Error: %A" errorMsg
 
-    type Keyword = {
-        ns: string option
-        symbol: string
-    }
-
-    type Edn = EString of string
-             | EFloat of float
-             | ENull
-             | EBool of bool
-             | EKeyword of Keyword
-             | EVector of Edn list
-             | ESet of Set<Edn>
-             | EMap of Map<Edn, Edn>
-
-    type EdnParser = Parser<Edn, unit>
-
     /// null parser
-    let enull: EdnParser = stringReturn "nil" ENull
+    let enull = stringReturn "nil" ENull
 
     /// bool parser
-    let ebool: EdnParser = (stringReturn "true" (EBool true))
+    let ebool = (stringReturn "true" (EBool true))
                                     <|> (stringReturn "false" (EBool false))
 
-    let efloat: EdnParser = pfloat |>> EFloat
+    let efloat = pfloat |>> EFloat
 
     // -------------- string ------------------------
     let str s = pstring s
@@ -57,11 +56,11 @@ module Edn =
 
     //--------------- keyword -----------------
     let name = many (letter <|> anyOf "-_*?!$%&=><") |>> (List.toArray >> (System.String))
-    let ekeyword :EdnParser = ((str ":") >>. name .>> optional (str "/")) .>>. name 
+    let ekeyword = ((str ":") >>. name .>> optional (str "/")) .>>. name 
                                 |>> (fun p ->
                                         match p with
-                                        | (sym, "") -> EKeyword {ns = None; symbol = sym}
-                                        | (ns, sym) -> EKeyword {ns = Some ns; symbol = sym})
+                                        | (sym, "") -> EKeyword {Ns = None; Name = sym}
+                                        | (ns, sym) -> EKeyword {Ns = Some ns; Name = sym})
 
     // forward declare
     let evalue, evalueRef = createParserForwardedToRef<Edn, unit>()

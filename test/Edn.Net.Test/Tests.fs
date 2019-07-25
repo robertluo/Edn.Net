@@ -1,7 +1,7 @@
 module Tests
 
 open Expecto
-open Robertluo.Edn
+open Robertluo
 open FParsec
 
 [<Tests>]
@@ -14,11 +14,11 @@ let tests =
                           ("true", EBool true)
                           ("nil", ENull)
                           ("\"foo\"", EString "foo")
-                          (":foo/bar", EKeyword {ns = Some("foo"); symbol = "bar"})
-                          (":foo", EKeyword {ns = None; symbol = "foo"})
-                          ("#{25.0, :foo}", ESet (Set.ofList [EFloat 25.0; EKeyword {ns = None; symbol = "foo"}]))]
+                          (":foo/bar", EKeyword {Ns = Some("foo"); Name = "bar"})
+                          (":foo", EKeyword {Ns = None; Name = "foo"})
+                          ("#{25.0, :foo}", ESet (Set.ofList [EFloat 25.0; EKeyword {Ns = None; Name = "foo"}]))]
       for KeyValue (input , expected) in matrix do
-        match Parse input with
+        match Edn.Parse input with
         | Success(actual, _, _) -> Expect.equal actual expected "should parse"
         | _ -> failtest "not able to parse"
 
@@ -28,7 +28,7 @@ let tests =
                    nil]
                    """
       let expected = EVector [EBool true; ENull]
-      match Parse input with
+      match Edn.Parse input with
       | Success (actual, _, _) -> Expect.equal actual expected "as white space"
       | Failure (errorMsg, _, _) -> failtest errorMsg
 
@@ -37,11 +37,11 @@ let tests =
                   {:foo/bar [35.1, false,]
                    :a nil}
                   """
-      let expected = EMap (Map.ofList [(EKeyword {ns = Some "foo"; symbol = "bar"},
+      let expected = EMap (Map.ofList [(EKeyword {Ns = Some "foo"; Name = "bar"},
                                         EVector [EFloat 35.1; EBool false])
-                                       (EKeyword {ns = None; symbol = "a"},
+                                       (EKeyword {Ns = None; Name = "a"},
                                         ENull)])
-      match Parse input with
+      match Edn.Parse input with
       | Success (actual, _, _) -> Expect.equal actual expected "without problem"
       | Failure (errorMsg, _, _) -> failtest errorMsg
 ]
