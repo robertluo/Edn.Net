@@ -7,3 +7,8 @@ build/
 packages/
 paket-files/
 .paket/
+.vscode/
+
+#these files are generated, I don't want to encourage users to use them
+build.sh
+build.cmd
