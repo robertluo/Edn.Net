@@ -10,7 +10,7 @@ jobs:
             - fake
       - run:
           command: |
-            paket install && fake run build.fsx
+            ~/.dotnet/tools/paket install && ~/.dotnet/tools/fake run build.fsx
       - save_cache:
           paths:
             - ~/.nuget
