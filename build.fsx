@@ -12,10 +12,15 @@ Target.initEnvironment()
 
 // Properties
 let libProj = "src/Edn.Net/Edn.Net.fsproj"
+let testProj = "test/Edn.Net.Test/Edn.Net.Test.fsproj"
 
 // Targets
 Target.create "BuildApp" (fun _ ->
   DotNet.build id libProj
+)
+
+Target.create "Test" (fun _ ->
+  DotNet.test id testProj
 )
 
 Target.create "Pack" (fun _ ->
@@ -25,7 +30,8 @@ Target.create "Pack" (fun _ ->
 open Fake.Core.TargetOperators
 
 "BuildApp"
-  ==> "Pack"
+  ==> "Test"
+    ==> "Pack"
 
 // start build
-Target.runOrDefault "BuildApp"
+Target.runOrDefault "Test"
