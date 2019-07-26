@@ -1,12 +1,13 @@
 #r "paket:
 nuget Fake.DotNet.Cli
 nuget Fake.IO.FileSystem
+nuget Fake.DotNet.Testing.Expecto
 nuget Fake.Core.Target //"
 #load "./.fake/build.fsx/intellisense.fsx"
 
-open Fake.IO
 open Fake.DotNet
 open Fake.Core
+open Fake.DotNet.Testing
 
 Target.initEnvironment()
 
@@ -20,7 +21,7 @@ Target.create "BuildApp" (fun _ ->
 )
 
 Target.create "Test" (fun _ ->
-  DotNet.test id testProj
+  DotNet.exec id "run" (sprintf "-p %s" testProj) |> ignore
 )
 
 Target.create "Pack" (fun _ ->
