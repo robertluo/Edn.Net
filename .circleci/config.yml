@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: renewdoit/dotnet-build:1.0
+      - image: renewdoit/dotnet-build:0.1
     steps:
       - checkout
       - restore_cache:
@@ -10,8 +10,11 @@ jobs:
             - fake
       - run:
           command: |
-            ~/.dotnet/tools/paket install && ~/.dotnet/tools/fake run build.fsx
+            paket install
       - save_cache:
           paths:
             - ~/.nuget
           key: fake
+      - run:
+          command: |
+            fake run build.fsx
