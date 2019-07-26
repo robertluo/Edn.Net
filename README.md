@@ -1,4 +1,5 @@
 # Robertluo.Edn.Net
+[![CircleCI](https://circleci.com/gh/robertluo/Edn.Net.svg?style=svg)](https://circleci.com/gh/robertluo/Edn.Net)
 
 My attempt of implementing [Edn format](https://github.com/edn-format/edn) for .Net.
 
