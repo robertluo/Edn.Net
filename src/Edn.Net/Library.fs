@@ -55,7 +55,7 @@ module Edn =
     let comment = str ";" >>. skipRestOfLine true
 
     //--------------- keyword -----------------
-    let name = many (letter <|> anyOf "-_*?!$%&=><") |>> (List.toArray >> (System.String))
+    let name = many (letter <|> anyOf "-_*?!$%&=><0123456789") |>> (List.toArray >> (System.String))
     let ekeyword = ((str ":") >>. name .>> optional (str "/")) .>>. name 
                                 |>> (fun p ->
                                         match p with

@@ -16,7 +16,7 @@ let tests =
                           ("\"foo\"", EString "foo")
                           (":foo/bar", EKeyword {Ns = Some("foo"); Name = "bar"})
                           (":foo", EKeyword {Ns = None; Name = "foo"})
-                          ("#{25.0, :foo}", ESet (Set.ofList [EFloat 25.0; EKeyword {Ns = None; Name = "foo"}]))]
+                          ("#{25.0, :foo1}", ESet (Set.ofList [EFloat 25.0; EKeyword {Ns = None; Name = "foo1"}]))]
       for KeyValue (input , expected) in matrix do
         match Edn.Parse input with
         | Success(actual, _, _) -> Expect.equal actual expected "should parse"
