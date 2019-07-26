@@ -5,15 +5,30 @@ type Keyword = {
     Name: string
 }
 
-type Edn = EString of string
-         | EFloat of float
-         | ENull
-         | EBool of bool
-         | EKeyword of Keyword
-         | EVector of Edn list
-         | ESet of Set<Edn>
-         | EMap of Map<Edn, Edn>
+type Edn = 
+|EString of string
+| EFloat of float
+| ENull
+| EBool of bool
+| EKeyword of Keyword
+| EVector of Edn list
+| ESet of Set<Edn>
+| EMap of Map<Edn, Edn>
 
+    override this.ToString() =
+        match this with
+        | ENull -> "nil"
+        | EBool v -> if v then "true" else "false"
+        | EKeyword {Ns = ns; Name = name} ->
+           match ns with
+           | Some n -> sprintf ":%s/%s" n name
+           | None -> sprintf ":%s" name
+        | EVector v -> v |> List.map (fun i -> i.ToString()) |> String.concat ", " |> sprintf "[%s]"
+        | ESet v -> Set.toList v |> List.map (fun i -> i.ToString()) |> String.concat ", " |> sprintf "#{%s}" 
+        | EMap m -> Map.toList m |> List.map (fun (k, v) -> k.ToString() + " " + v.ToString()) |> String.concat ", " |> sprintf "{%s}"
+        | EString s -> "\"" + s + "\""
+        | EFloat f -> f.ToString()
+ 
 [<RequireQualifiedAccessAttribute>]
 module Edn =
     open FParsec
@@ -88,4 +103,9 @@ module Edn =
                                    ekeyword
                                    estring] .>> ws
 
+    //-------------- Interface ---------------
     let Parse = run evalue
+
+    let seqToString sep seq = 
+        (String.concat sep (List.map (fun i -> i.ToString()) seq))
+           

@@ -44,4 +44,22 @@ let tests =
       match Edn.Parse input with
       | Success (actual, _, _) -> Expect.equal actual expected "without problem"
       | Failure (errorMsg, _, _) -> failtest errorMsg
+
+]
+
+[<Tests>]
+let test2 = testList "ToString" [
+  testCase "keyword" <| fun _ ->
+    let input = (EKeyword {Ns = None; Name = "foo"}).ToString()
+    Expect.equal input ":foo" "should like :foo"
+    let input = (EKeyword {Ns = Some "foo"; Name = "bar"}).ToString()
+    Expect.equal input ":foo/bar" "should contains ns"
+
+  testCase "complex" <| fun _ ->
+    let input =  EMap (Map.ofList [(EKeyword {Ns = Some "foo"; Name = "bar"},
+                                    EVector [EFloat 35.1; EBool false])
+                                   (EKeyword {Ns = None; Name = "a"},
+                                    ENull)])
+    let s = input.ToString()
+    Expect.equal s "{:a nil, :foo/bar [35.1, false]}" ""                                     
 ]
