@@ -20,7 +20,7 @@ The `Edn` type in `Robertluo.Edn` is the basic abstraction, it can be:
  - String
  - a number. TODO now can only be float, should introduce integer
  - Keyword
- - Symbol. TODO not implemnted yet.
+ - Symbol.
  - Set. 
  - Vector.
  - Map.
