@@ -3,6 +3,7 @@ module Tests
 open Expecto
 open Robertluo
 open FParsec
+open System
 
 [<Tests>]
 let tests =
@@ -70,6 +71,13 @@ let tests =
               match Edn.Parse input with
               | Success(actual, _, _) ->
                     Expect.equal actual expected "should be same as full symbol"
+              | Failure(msg, _, _) -> failtest msg
+
+          testCase "tagged uuid" <| fun _ ->
+              let input = "#uuid \"f81d4fae-7dec-11d0-a765-00a0c91e6bf6\""
+              let expected = EUuid (Guid "f81d4fae-7dec-11d0-a765-00a0c91e6bf6")
+              match Edn.Parse input with
+              | Success(actual, _, _) -> Expect.equal actual expected "should recognize"
               | Failure(msg, _, _) -> failtest msg
         ]
             

@@ -18,6 +18,7 @@ type Edn =
     | EVector of Edn list
     | ESet of Set<Edn>
     | EMap of Map<Edn, Edn>
+    | EUuid of System.Guid //to support builtin uuid
     override this.ToString() =
         match this with
         | ENull -> "nil"
@@ -43,6 +44,7 @@ type Edn =
             |> List.map (fun (k, v) -> k.ToString() + " " + v.ToString())
             |> String.concat ", "
             |> sprintf "{%s}"
+        | EUuid uuid -> uuid.ToString()
 
 [<RequireQualifiedAccessAttribute>]
 module Edn =
@@ -124,9 +126,11 @@ module Edn =
 
     //tagged element support
     let etagged =
-        (str "#") >>. (esymbol <|> ekeyword) .>>. evalue |>> function
+        (str "#") >>. (ekeyword <|> (symbol |>> ESymbol)) .>>. evalue |>> function
         | EKeyword { Ns = None; Name = name }, EMap m ->
             EMap(assocNsToMap name m)
+        | ESymbol {Ns = None; Name = "uuid"}, EString s ->
+            EUuid (System.Guid.Parse s)
         | k, v -> failwithf "Not supported: %A, %A" k v
 
     do evalueRef
