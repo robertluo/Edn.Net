@@ -3,6 +3,10 @@
 type Keyword =
     { Ns : string option
       Name : string }
+    override this.ToString() =
+        match this with
+        | {Ns = None; Name = name} -> name.ToString()
+        | {Ns = Some ns; Name = name} -> ns.ToString() + "/" + name.ToString()
 
 type Edn =
     | EString of string
@@ -10,6 +14,7 @@ type Edn =
     | ENull
     | EBool of bool
     | EKeyword of Keyword
+    | ESymbol of Keyword
     | EVector of Edn list
     | ESet of Set<Edn>
     | EMap of Map<Edn, Edn>
@@ -19,10 +24,10 @@ type Edn =
         | EBool v ->
             if v then "true"
             else "false"
-        | EKeyword { Ns = ns; Name = name } ->
-            match ns with
-            | Some n -> sprintf ":%s/%s" n name
-            | None -> sprintf ":%s" name
+        | EString s -> "\"" + s + "\""
+        | EFloat f -> f.ToString()
+        | EKeyword v -> ":" + v.ToString()
+        | ESymbol v -> "'" + v.ToString()
         | EVector v ->
             v
             |> List.map (fun i -> i.ToString())
@@ -38,8 +43,6 @@ type Edn =
             |> List.map (fun (k, v) -> k.ToString() + " " + v.ToString())
             |> String.concat ", "
             |> sprintf "{%s}"
-        | EString s -> "\"" + s + "\""
-        | EFloat f -> f.ToString()
 
 [<RequireQualifiedAccessAttribute>]
 module Edn =
