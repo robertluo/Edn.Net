@@ -26,3 +26,14 @@ The `Edn` type in `Robertluo.Edn` is the basic abstraction, it can be:
  - Map.
 
  It also can contains tagged element. (TODO not implemnted yet.)
+
+ ## Develop
+
+ - [DotNote Core](https://dotnet.microsoft.com/download)
+ - [Fake build tool](https://fake.build)
+ - [Paket packaging manager](https://fsprojects.github.io/Paket/)
+
+So you should install all above tools, then:
+
+ 1. `paket install` to install all dependencies
+ 1. `dotnet watch -p Test/Edn.Net.Test/Edn.Net.Test.fsproj run` to automatically build and run tests.
