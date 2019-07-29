@@ -29,7 +29,8 @@ let tests =
                   match Edn.Parse input with
                   | Success(actual, _, _) ->
                       Expect.equal actual expected "should parse"
-                  | _ -> failtest "not able to parse"
+                  | Failure(msg, _, _) -> failtest msg
+
           testCase "can skip comment" <| fun _ ->
               let input = """
                   [true, ;ok
@@ -43,6 +44,7 @@ let tests =
               | Success(actual, _, _) ->
                   Expect.equal actual expected "as white space"
               | Failure(errorMsg, _, _) -> failtest errorMsg
+
           testCase "can parse a nested map and other" <| fun _ ->
               let input = """
                   {:foo/bar [35.1, false,]
@@ -59,8 +61,18 @@ let tests =
               match Edn.Parse input with
               | Success(actual, _, _) ->
                   Expect.equal actual expected "without problem"
-              | Failure(errorMsg, _, _) -> failtest errorMsg ]
+              | Failure(errorMsg, _, _) -> failtest errorMsg 
 
+          testCase "clojure 1.9 map key compaction" <| fun _ ->
+              let input = "#:foo{:id true, :bar/baz nil}"
+              let expected = EMap (Map.ofList [ (EKeyword {Ns = Some "foo"; Name = "id"}, EBool true)
+                                                (EKeyword {Ns = Some "bar"; Name = "baz"}, ENull)])
+              match Edn.Parse input with
+              | Success(actual, _, _) ->
+                    Expect.equal actual expected "should be same as full symbol"
+              | Failure(msg, _, _) -> failtest msg
+        ]
+            
 [<Tests>]
 let test2 =
     testList "ToString"
