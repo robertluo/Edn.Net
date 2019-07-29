@@ -5,8 +5,8 @@ type Keyword =
       Name : string }
     override this.ToString() =
         match this with
-        | {Ns = None; Name = name} -> name.ToString()
-        | {Ns = Some ns; Name = name} -> ns.ToString() + "/" + name.ToString()
+        | { Ns = None; Name = name } -> name.ToString()
+        | { Ns = Some ns; Name = name } -> ns.ToString() + "/" + name.ToString()
 
 type Edn =
     | EString of string
@@ -84,19 +84,21 @@ module Edn =
     let comment = str ";" >>. skipRestOfLine true
     //--------------- keyword -----------------
     let name =
-        many (letter <|> anyOf "-_*?!$%&=><0123456789")
+        many (letter <|> anyOf ".*+!-_?$%&=<>0123456789")
         |>> (List.toArray >> (System.String))
 
-    let ekeyword =
-        ((str ":") >>. name .>> optional (str "/")) .>>. name |>> (fun p ->
+    let symbol =
+        name .>> optional (str "/") .>>. name |>> (fun p ->
         match p with
         | (sym, "") ->
-            EKeyword { Ns = None
-                       Name = sym }
+            { Ns = None
+              Name = sym }
         | (ns, sym) ->
-            EKeyword { Ns = Some ns
-                       Name = sym })
+            { Ns = Some ns
+              Name = sym })
 
+    let ekeyword = (str ":") >>. symbol |>> EKeyword
+    let esymbol = (str "'") >>. symbol |>> ESymbol
     // forward declare
     let evalue, evalueRef = createParserForwardedToRef<Edn, unit>()
 
@@ -110,11 +112,28 @@ module Edn =
     let keyValue = evalue .>>. (ws >>. evalue)
     let emap = listBetween "{" "}" keyValue (Map.ofList >> EMap)
 
+    //assoc a default ns to map m if a key does not have a ns
+    let assocNsToMap ns m : Map<Edn, Edn> =
+        m
+        |> Map.fold (fun rst k v ->
+               match k with
+               | EKeyword { Ns = None; Name = name } ->
+                   rst.Add(EKeyword { Ns = Some ns
+                                      Name = name }, v)
+               | _ -> rst.Add(k, v)) Map.empty
+
+    //tagged element support
+    let etagged =
+        (str "#") >>. ekeyword .>>. evalue |>> function
+        | EKeyword { Ns = None; Name = name }, EMap m ->
+            EMap(assocNsToMap name m)
+        | k, v -> failwithf "Not supported: %A, %A" k v
+
     do evalueRef
        := ws
           >>. choice
-                  [ ebool; enull; efloat; emap; evector; eset; ekeyword; estring ]
-          .>> ws
+                  [ ebool; enull; efloat; emap; evector; eset; ekeyword; esymbol;
+                    estring; etagged ] .>> ws
 
     //-------------- Interface ---------------
     let Parse = run evalue
