@@ -124,7 +124,7 @@ module Edn =
 
     //tagged element support
     let etagged =
-        (str "#") >>. ekeyword .>>. evalue |>> function
+        (str "#") >>. (esymbol <|> ekeyword) .>>. evalue |>> function
         | EKeyword { Ns = None; Name = name }, EMap m ->
             EMap(assocNsToMap name m)
         | k, v -> failwithf "Not supported: %A, %A" k v
