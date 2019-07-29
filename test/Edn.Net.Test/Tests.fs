@@ -5,6 +5,11 @@ open Robertluo
 open FParsec
 open System
 
+let testParse input expected comment =
+    match Edn.Parse input with
+    | Success(actual,_,_) -> Expect.equal actual expected comment
+    | Failure(msg,_,_) -> failtest msg
+
 [<Tests>]
 let tests =
     testList "Edn Parsing Test"
@@ -27,31 +32,23 @@ let tests =
                                             EKeyword { Ns = None
                                                        Name = "foo1" } ])) ]
               for KeyValue(input, expected) in matrix do
-                  match Edn.Parse input with
-                  | Success(actual, _, _) ->
-                      Expect.equal actual expected "should parse"
-                  | Failure(msg, _, _) -> failtest msg
+                  testParse input expected "should parse"
 
           testCase "can skip comment" <| fun _ ->
               let input = """
                   [true, ;ok
                    nil]
                    """
-
               let expected =
                   EVector [ EBool true
                             ENull ]
-              match Edn.Parse input with
-              | Success(actual, _, _) ->
-                  Expect.equal actual expected "as white space"
-              | Failure(errorMsg, _, _) -> failtest errorMsg
+              testParse input expected "should ok"
 
           testCase "can parse a nested map and other" <| fun _ ->
               let input = """
                   {:foo/bar [35.1, false,]
                    :a nil}
                   """
-
               let expected =
                   EMap(Map.ofList [ (EKeyword { Ns = Some "foo"
                                                 Name = "bar" },
@@ -59,27 +56,18 @@ let tests =
                                                EBool false ])
                                     (EKeyword { Ns = None
                                                 Name = "a" }, ENull) ])
-              match Edn.Parse input with
-              | Success(actual, _, _) ->
-                  Expect.equal actual expected "without problem"
-              | Failure(errorMsg, _, _) -> failtest errorMsg 
+              testParse input expected "should match"
 
           testCase "clojure 1.9 map key compaction" <| fun _ ->
               let input = "#:foo{:id true, :bar/baz nil}"
               let expected = EMap (Map.ofList [ (EKeyword {Ns = Some "foo"; Name = "id"}, EBool true)
                                                 (EKeyword {Ns = Some "bar"; Name = "baz"}, ENull)])
-              match Edn.Parse input with
-              | Success(actual, _, _) ->
-                    Expect.equal actual expected "should be same as full symbol"
-              | Failure(msg, _, _) -> failtest msg
+              testParse input expected "should append ns to empty ns keys"
 
           testCase "tagged uuid" <| fun _ ->
               let input = "#uuid \"f81d4fae-7dec-11d0-a765-00a0c91e6bf6\""
               let expected = EUuid (Guid "f81d4fae-7dec-11d0-a765-00a0c91e6bf6")
-              match Edn.Parse input with
-              | Success(actual, _, _) -> Expect.equal actual expected "should recognize"
-              | Failure(msg, _, _) -> failtest msg
-        ]
+              testParse input expected "should run" ]
             
 [<Tests>]
 let test2 =
