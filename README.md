@@ -18,7 +18,11 @@ The `Edn` type in `Robertluo.Edn` is the basic abstraction, it can be:
  - Null value `nil`
  - Boolean
  - String
- - a number. TODO now can only be float, should introduce integer
+ - a number
+   - as integer (int64)
+   - as bigint
+   - as float
+   - as decimal
  - Keyword
  - Symbol.
  - Set. 
