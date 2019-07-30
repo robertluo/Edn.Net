@@ -11,6 +11,7 @@ type Keyword =
 type Edn =
     | EString of string
     | EInteger of int64
+    | EBigInt of bigint
     | EFloat of float
     | ENull
     | EBool of bool
@@ -29,6 +30,7 @@ type Edn =
             else "false"
         | EString s -> "\"" + s + "\""
         | EInteger v -> v.ToString()
+        | EBigInt v -> v.ToString()
         | EFloat f -> f.ToString()
         | EKeyword v -> ":" + v.ToString()
         | ESymbol v -> "'" + v.ToString()
@@ -54,6 +56,7 @@ type Edn =
 module Edn =
     open FParsec
     open System.Xml
+    open System.Numerics
 
     let test p str =
         match run p str with
@@ -73,24 +76,27 @@ module Edn =
         |> List.toArray
         |> System.String
 
+    // ------------- number --------------------------
     let enumber =
-        let toNumber ((sign, s1), s2) =
-            let sign =
-                match sign with
-                | Some v -> v
-                | None -> '+'
-
-            let s1 = (string sign) + (charListToStr s1)
-            match s2 with
-            | None -> EInteger(int64 s1)
+        let intPart =
+            opt (anyOf "+-") .>>. (many1 digit)
+            |>> fun (sign, s) -> string (defaultArg sign '+') + charListToStr s
+        let bigInt = pstring "N"
+        let floatPart = (pstring ".") >>. (many digit) |>> charListToStr
+        intPart .>>. opt (choice [ bigInt; floatPart ]) |>> fun (sInt, sOther) ->
+            match sOther with
+            | Some "N" ->
+                sInt
+                |> BigInteger.Parse
+                |> EBigInt
             | Some v ->
-                s1 + "." + (charListToStr v)
+                sInt + "." + v
                 |> float
                 |> EFloat
-
-        let digits = anyOf "01234567890"
-        opt (anyOf "+-") .>>. (many1 digits)
-        .>>. opt ((pstring ".") >>. (many digits)) |>> toNumber
+            | None ->
+                sInt
+                |> int64
+                |> EInteger
 
     // -------------- string ------------------------
     let str s = pstring s
