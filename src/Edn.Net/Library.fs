@@ -13,6 +13,7 @@ type Edn =
     | EInteger of int64
     | EBigInt of bigint
     | EFloat of float
+    | EDecimal of decimal
     | ENull
     | EBool of bool
     | EKeyword of Keyword
@@ -32,6 +33,7 @@ type Edn =
         | EInteger v -> v.ToString()
         | EBigInt v -> v.ToString()
         | EFloat f -> f.ToString()
+        | EDecimal v -> v.ToString()
         | EKeyword v -> ":" + v.ToString()
         | ESymbol v -> "'" + v.ToString()
         | EVector v ->
@@ -55,6 +57,7 @@ type Edn =
 [<RequireQualifiedAccessAttribute>]
 module Edn =
     open FParsec
+    open System
     open System.Xml
     open System.Numerics
 
@@ -85,17 +88,29 @@ module Edn =
         let expPart = (anyOf "eE") >>. intPart |>> fun s -> "e" + s
         let simpleFloatPart =
             (pstring ".") >>. (many digit) |>> fun s -> "." + charListToStr s
+        let dec = pstring "M" //decimal
         let floatPart =
-            simpleFloatPart .>>. opt expPart
-            |>> fun (sSimple, sExp) -> sSimple + defaultArg sExp ""
+            simpleFloatPart .>>. opt expPart .>>. opt dec
+            |>> fun ((sSimple, sExp), sDec) ->
+                sSimple + defaultArg sExp "" + defaultArg sDec ""
         let newEFloat = float >> EFloat
-        intPart .>>. opt (choice [ bigInt; floatPart; expPart ]) |>> fun (sInt, sOther) ->
+        let chop (s : string) = s.[0..(s.Length - 2)]
+        intPart .>>. opt (choice [ bigInt; floatPart; expPart; dec ]) |>> fun (sInt, sOther) ->
             match sOther with
             | Some "N" ->
                 sInt
                 |> BigInteger.Parse
                 |> EBigInt
+            | Some "M" ->
+                sInt + "M"
+                |> Decimal.Parse
+                |> EDecimal
             | Some v when v.StartsWith "e" -> sInt + v |> newEFloat
+            | Some v when v.EndsWith "M" ->
+                sInt + v
+                |> chop
+                |> Decimal.Parse
+                |> EDecimal
             | Some v -> sInt + v |> newEFloat
             | None ->
                 sInt

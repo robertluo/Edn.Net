@@ -31,6 +31,10 @@ let tests =
                          ("2E2", EFloat 200.) ]
               for KeyValue(input, expected) in matrix do
                   testParse input expected "should parse"
+          testCase "with decimal" <| fun _ ->
+              let input = "2.1M"
+              let expected = EDecimal 2.1M
+              testParse input expected "should equal"
           testCase "when input is a valid edn string" <| fun _ ->
               let matrix =
                   dict [ ("-322.5", EFloat -322.5)
