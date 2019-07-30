@@ -10,7 +10,10 @@ type Keyword =
 
 type Edn =
     | EString of string
+    | EInteger of int64
+    | EBigInt of bigint
     | EFloat of float
+    | EDecimal of decimal
     | ENull
     | EBool of bool
     | EKeyword of Keyword
@@ -27,7 +30,10 @@ type Edn =
             if v then "true"
             else "false"
         | EString s -> "\"" + s + "\""
+        | EInteger v -> v.ToString()
+        | EBigInt v -> v.ToString()
         | EFloat f -> f.ToString()
+        | EDecimal v -> v.ToString()
         | EKeyword v -> ":" + v.ToString()
         | ESymbol v -> "'" + v.ToString()
         | EVector v ->
@@ -51,7 +57,9 @@ type Edn =
 [<RequireQualifiedAccessAttribute>]
 module Edn =
     open FParsec
+    open System
     open System.Xml
+    open System.Numerics
 
     let test p str =
         match run p str with
@@ -66,7 +74,50 @@ module Edn =
         (stringReturn "true" (EBool true))
         <|> (stringReturn "false" (EBool false))
 
-    let efloat = pfloat |>> EFloat
+    let charListToStr charList =
+        charList
+        |> List.toArray
+        |> System.String
+
+    // ------------- number --------------------------
+    let enumber =
+        let intPart =
+            opt (anyOf "+-") .>>. (many1 digit)
+            |>> fun (sign, s) -> string (defaultArg sign '+') + charListToStr s
+        let bigInt = pstring "N" //BigInt
+        let expPart = (anyOf "eE") >>. intPart |>> fun s -> "e" + s
+        let simpleFloatPart =
+            (pstring ".") >>. (many digit)
+            |>> (charListToStr >> fun s -> "." + s)
+        let dec = pstring "M" //decimal
+        let floatPart =
+            simpleFloatPart .>>. opt expPart .>>. opt dec
+            |>> fun ((sSimple, sExp), sDec) ->
+                sSimple + defaultArg sExp "" + defaultArg sDec ""
+        let newEFloat = float >> EFloat
+        let chop (s : string) = s.[0..(s.Length - 2)]
+        intPart .>>. opt (choice [ bigInt; floatPart; expPart; dec ]) |>> fun (sInt, sOther) ->
+            match sOther with
+            | Some "N" ->
+                sInt
+                |> BigInteger.Parse
+                |> EBigInt
+            | Some "M" ->
+                sInt + "M"
+                |> Decimal.Parse
+                |> EDecimal
+            | Some v when v.StartsWith "e" -> sInt + v |> newEFloat
+            | Some v when v.EndsWith "M" ->
+                sInt + v
+                |> chop
+                |> Decimal.Parse
+                |> EDecimal
+            | Some v -> sInt + v |> newEFloat
+            | None ->
+                sInt
+                |> int64
+                |> EInteger
+
     // -------------- string ------------------------
     let str s = pstring s
 
@@ -132,17 +183,17 @@ module Edn =
         (str "#") >>. (ekeyword <|> (symbol |>> ESymbol)) .>>. evalue |>> function
         | EKeyword { Ns = None; Name = name }, EMap m ->
             EMap(assocNsToMap name m)
-        | ESymbol {Ns = None; Name = "uuid"}, EString s ->
-            EUuid (System.Guid.Parse s)
-        | ESymbol {Ns = None; Name = "inst"}, EString s ->
-            EInstant (XmlConvert.ToDateTime(s, XmlDateTimeSerializationMode.Utc))
+        | ESymbol { Ns = None; Name = "uuid" }, EString s ->
+            EUuid(System.Guid.Parse s)
+        | ESymbol { Ns = None; Name = "inst" }, EString s ->
+            EInstant(XmlConvert.ToDateTime(s, XmlDateTimeSerializationMode.Utc))
         | k, v -> failwithf "Not supported: %A, %A" k v
 
     do evalueRef
        := ws
           >>. choice
-                  [ ebool; enull; efloat; emap; evector; eset; ekeyword; esymbol;
-                    estring; etagged ] .>> ws
+                  [ ebool; enull; enumber; emap; evector; eset; ekeyword;
+                    esymbol; estring; etagged ] .>> ws
 
     //-------------- Interface ---------------
     let Parse = run evalue
