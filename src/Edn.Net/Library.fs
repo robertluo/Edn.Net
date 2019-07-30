@@ -18,6 +18,8 @@ type Edn =
     | EVector of Edn list
     | ESet of Set<Edn>
     | EMap of Map<Edn, Edn>
+    | EUuid of System.Guid //to support builtin uuid
+    | EInstant of System.DateTime //to support builtin instant
     override this.ToString() =
         match this with
         | ENull -> "nil"
@@ -43,10 +45,13 @@ type Edn =
             |> List.map (fun (k, v) -> k.ToString() + " " + v.ToString())
             |> String.concat ", "
             |> sprintf "{%s}"
+        | EUuid uuid -> "#uuid \"" + uuid.ToString() + "\""
+        | EInstant dt -> "#instant \"" + dt.ToString() + "\""
 
 [<RequireQualifiedAccessAttribute>]
 module Edn =
     open FParsec
+    open System.Xml
 
     let test p str =
         match run p str with
@@ -124,9 +129,13 @@ module Edn =
 
     //tagged element support
     let etagged =
-        (str "#") >>. (esymbol <|> ekeyword) .>>. evalue |>> function
+        (str "#") >>. (ekeyword <|> (symbol |>> ESymbol)) .>>. evalue |>> function
         | EKeyword { Ns = None; Name = name }, EMap m ->
             EMap(assocNsToMap name m)
+        | ESymbol {Ns = None; Name = "uuid"}, EString s ->
+            EUuid (System.Guid.Parse s)
+        | ESymbol {Ns = None; Name = "inst"}, EString s ->
+            EInstant (XmlConvert.ToDateTime(s, XmlDateTimeSerializationMode.Utc))
         | k, v -> failwithf "Not supported: %A, %A" k v
 
     do evalueRef
@@ -137,5 +146,3 @@ module Edn =
 
     //-------------- Interface ---------------
     let Parse = run evalue
-    let seqToString sep seq =
-        (String.concat sep (List.map (fun i -> i.ToString()) seq))
