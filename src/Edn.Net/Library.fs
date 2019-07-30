@@ -87,7 +87,8 @@ module Edn =
         let bigInt = pstring "N" //BigInt
         let expPart = (anyOf "eE") >>. intPart |>> fun s -> "e" + s
         let simpleFloatPart =
-            (pstring ".") >>. (many digit) |>> fun s -> "." + charListToStr s
+            (pstring ".") >>. (many digit)
+            |>> (charListToStr >> fun s -> "." + s)
         let dec = pstring "M" //decimal
         let floatPart =
             simpleFloatPart .>>. opt expPart .>>. opt dec
