@@ -67,7 +67,14 @@ let tests =
           testCase "tagged uuid" <| fun _ ->
               let input = "#uuid \"f81d4fae-7dec-11d0-a765-00a0c91e6bf6\""
               let expected = EUuid (Guid "f81d4fae-7dec-11d0-a765-00a0c91e6bf6")
-              testParse input expected "should run" ]
+              testParse input expected "should run" 
+
+          testCase "tagged instant" <| fun _ ->
+              let input = "#inst \"1985-04-12T23:20:50.52Z\""
+              match Edn.Parse input with
+              | Success(EInstant v, _, _) -> Expect.equal v.Year 1985 "should readable"
+              | v -> failtestf "not understandable: %A" v
+        ]
             
 [<Tests>]
 let test2 =
