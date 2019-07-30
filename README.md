@@ -25,7 +25,7 @@ The `Edn` type in `Robertluo.Edn` is the basic abstraction, it can be:
  - Vector.
  - Map.
 
- It also can contains tagged element. (TODO not implemnted yet.)
+ It also can contains tagged element. (TODO Customizable tag parsing)
 
  ## Develop
 
