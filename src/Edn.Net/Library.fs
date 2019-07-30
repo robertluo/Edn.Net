@@ -81,18 +81,22 @@ module Edn =
         let intPart =
             opt (anyOf "+-") .>>. (many1 digit)
             |>> fun (sign, s) -> string (defaultArg sign '+') + charListToStr s
-        let bigInt = pstring "N"
-        let floatPart = (pstring ".") >>. (many digit) |>> charListToStr
-        intPart .>>. opt (choice [ bigInt; floatPart ]) |>> fun (sInt, sOther) ->
+        let bigInt = pstring "N" //BigInt
+        let expPart = (anyOf "eE") >>. intPart |>> fun s -> "e" + s
+        let simpleFloatPart =
+            (pstring ".") >>. (many digit) |>> fun s -> "." + charListToStr s
+        let floatPart =
+            simpleFloatPart .>>. opt expPart
+            |>> fun (sSimple, sExp) -> sSimple + defaultArg sExp ""
+        let newEFloat = float >> EFloat
+        intPart .>>. opt (choice [ bigInt; floatPart; expPart ]) |>> fun (sInt, sOther) ->
             match sOther with
             | Some "N" ->
                 sInt
                 |> BigInteger.Parse
                 |> EBigInt
-            | Some v ->
-                sInt + "." + v
-                |> float
-                |> EFloat
+            | Some v when v.StartsWith "e" -> sInt + v |> newEFloat
+            | Some v -> sInt + v |> newEFloat
             | None ->
                 sInt
                 |> int64

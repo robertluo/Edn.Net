@@ -24,6 +24,13 @@ let tests =
               let input = "135522112420024N"
               let expected = EBigInt 135522112420024I
               testParse input expected "should ok"
+          testCase "with exp part" <| fun _ ->
+              let matrix =
+                  dict [ ("3.15E13", EFloat 3.15E13)
+                         ("5.0E-3", EFloat 5.0E-3)
+                         ("2E2", EFloat 200.) ]
+              for KeyValue(input, expected) in matrix do
+                  testParse input expected "should parse"
           testCase "when input is a valid edn string" <| fun _ ->
               let matrix =
                   dict [ ("-322.5", EFloat -322.5)
