@@ -10,6 +10,7 @@ type Keyword =
 
 type Edn =
     | EString of string
+    | EInteger of int64
     | EFloat of float
     | ENull
     | EBool of bool
@@ -27,6 +28,7 @@ type Edn =
             if v then "true"
             else "false"
         | EString s -> "\"" + s + "\""
+        | EInteger v -> v.ToString()
         | EFloat f -> f.ToString()
         | EKeyword v -> ":" + v.ToString()
         | ESymbol v -> "'" + v.ToString()
@@ -66,7 +68,30 @@ module Edn =
         (stringReturn "true" (EBool true))
         <|> (stringReturn "false" (EBool false))
 
-    let efloat = pfloat |>> EFloat
+    let charListToStr charList =
+        charList
+        |> List.toArray
+        |> System.String
+
+    let enumber =
+        let toNumber ((sign, s1), s2) =
+            let sign =
+                match sign with
+                | Some v -> v
+                | None -> '+'
+
+            let s1 = (string sign) + (charListToStr s1)
+            match s2 with
+            | None -> EInteger(int64 s1)
+            | Some v ->
+                s1 + "." + (charListToStr v)
+                |> float
+                |> EFloat
+
+        let digits = anyOf "01234567890"
+        opt (anyOf "+-") .>>. (many1 digits)
+        .>>. opt ((pstring ".") >>. (many digits)) |>> toNumber
+
     // -------------- string ------------------------
     let str s = pstring s
 
@@ -132,17 +157,17 @@ module Edn =
         (str "#") >>. (ekeyword <|> (symbol |>> ESymbol)) .>>. evalue |>> function
         | EKeyword { Ns = None; Name = name }, EMap m ->
             EMap(assocNsToMap name m)
-        | ESymbol {Ns = None; Name = "uuid"}, EString s ->
-            EUuid (System.Guid.Parse s)
-        | ESymbol {Ns = None; Name = "inst"}, EString s ->
-            EInstant (XmlConvert.ToDateTime(s, XmlDateTimeSerializationMode.Utc))
+        | ESymbol { Ns = None; Name = "uuid" }, EString s ->
+            EUuid(System.Guid.Parse s)
+        | ESymbol { Ns = None; Name = "inst" }, EString s ->
+            EInstant(XmlConvert.ToDateTime(s, XmlDateTimeSerializationMode.Utc))
         | k, v -> failwithf "Not supported: %A, %A" k v
 
     do evalueRef
        := ws
           >>. choice
-                  [ ebool; enull; efloat; emap; evector; eset; ekeyword; esymbol;
-                    estring; etagged ] .>> ws
+                  [ ebool; enull; enumber; emap; evector; eset; ekeyword;
+                    esymbol; estring; etagged ] .>> ws
 
     //-------------- Interface ---------------
     let Parse = run evalue

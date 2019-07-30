@@ -13,7 +13,15 @@ let testParse input expected comment =
 [<Tests>]
 let tests =
     testList "Edn Parsing Test"
-        [ testCase "when input is a valid edn string" <| fun _ ->
+        [ testCase "When parse integer" <| fun _ ->
+              let inputs =
+                  dict [ ("+3575", EInteger 3575L)
+                         ("-857", EInteger -857L)
+                         ("-0", EInteger 0L)]
+              for KeyValue(input, expected) in inputs do
+                  testParse input expected "should parse"
+
+          testCase "when input is a valid edn string" <| fun _ ->
               let matrix =
                   dict [ ("-322.5", EFloat -322.5)
                          ("2554.0", EFloat 2554.0)
