@@ -1,5 +1,7 @@
 ﻿namespace Robertluo
 
+open FParsec
+
 type Keyword =
     { Ns : string option
       Name : string }
@@ -9,7 +11,7 @@ type Keyword =
         | { Ns = Some ns; Name = name } -> ns.ToString() + "/" + name.ToString()
 
 type Edn =
-    | EString of string
+    | EString of string ///String value
     | EInteger of int64
     | EBigInt of bigint
     | EFloat of float
@@ -53,10 +55,9 @@ type Edn =
             |> sprintf "{%s}"
         | EUuid uuid -> "#uuid \"" + uuid.ToString() + "\""
         | EInstant dt -> "#instant \"" + dt.ToString() + "\""
-
+    
 [<RequireQualifiedAccessAttribute>]
 module Edn =
-    open FParsec
     open System
     open System.Xml
     open System.Numerics
@@ -196,4 +197,11 @@ module Edn =
                     esymbol; estring; etagged ] .>> ws
 
     //-------------- Interface ---------------
-    let Parse = run evalue
+    let parse = run evalue
+    
+//-------------- Attach functions to type --------------
+type Edn with
+    static member Parse str =
+        match Edn.parse str with
+        | Success(v, _, _) -> v
+        | Failure(msg, _, _) -> failwith msg

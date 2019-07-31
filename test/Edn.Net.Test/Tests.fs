@@ -6,7 +6,7 @@ open FParsec
 open System
 
 let testParse input expected comment =
-    match Edn.Parse input with
+    match Edn.parse input with
     | Success(actual, _, _) -> Expect.equal actual expected comment
     | Failure(msg, _, _) -> failtest msg
 
@@ -94,7 +94,7 @@ let tests =
               testParse input expected "should run"
           testCase "tagged instant" <| fun _ ->
               let input = "#inst \"1985-04-12T23:20:50.52Z\""
-              match Edn.Parse input with
+              match Edn.parse input with
               | Success(EInstant v, _, _) ->
                   Expect.equal v.Year 1985 "should readable"
               | v -> failtestf "not understandable: %A" v ]
@@ -124,3 +124,10 @@ let test2 =
 
               let s = input.ToString()
               Expect.equal s "{:a nil, :foo/bar [35.1, false]}" "" ]
+
+[<Tests>]
+let testMisc =
+    testList "Misc"
+        [ testCase "Parse static method" <| fun _ ->
+            let input = "3"
+            Expect.equal (Edn.Parse input) (EInteger 3L) "ok"]
