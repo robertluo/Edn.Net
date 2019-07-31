@@ -130,4 +130,7 @@ let testMisc =
     testList "Misc"
         [ testCase "Parse static method" <| fun _ ->
             let input = "3"
-            Expect.equal (Edn.Parse input) (EInteger 3L) "ok"]
+            Expect.equal (Edn.Parse input) (EInteger 3L) "ok"
+          testCase "when wrong format" <| fun _ ->
+            let input = "[3:foo"
+            Expect.throws (fun () -> (Edn.Parse input) |> ignore) "should throw"]

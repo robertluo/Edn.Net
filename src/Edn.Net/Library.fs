@@ -138,7 +138,6 @@ module Edn =
             (stringsSepBy normalCharSnippet escapedCharSnippet)
 
     let estring = stringLiteral |>> EString
-    let comment = str ";" >>. skipRestOfLine true
     //--------------- keyword -----------------
     let name =
         many (letter <|> anyOf ".*+!-_?$%&=<>0123456789")
@@ -159,8 +158,9 @@ module Edn =
     // forward declare
     let evalue, evalueRef = createParserForwardedToRef<Edn, unit>()
 
+    let comment = str ";" >>. skipRestOfLine true
     let ws =
-        skipSepBy (many (anyOf " ,\t\n\r")) comment
+        skipSepBy (many (anyOf " ,\t\n\r")) comment 
 
     let listBetween sopen sclose pElement f =
         between (str sopen) (str sclose) (ws >>. many (pElement .>> ws) |>> f)
@@ -200,8 +200,11 @@ module Edn =
     let parse = run evalue
     
 //-------------- Attach functions to type --------------
+exception ParseException of string * ParserError
+
 type Edn with
+    /// Parse a EDN string to Edn data structure, if fail, throw a ParseException
     static member Parse str =
         match Edn.parse str with
         | Success(v, _, _) -> v
-        | Failure(msg, _, _) -> failwith msg
+        | Failure(msg, error, _) -> raise (ParseException(msg, error))
