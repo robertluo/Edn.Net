@@ -11,6 +11,10 @@ open Robertluo
 Edn.Parse "{:hello \"Edn\"}"
 ```
 
+## Releases
+
+ - 0.2.0 with all standard features implemented
+
 ## Design
 
 The `Edn` type in `Robertluo.Edn` is the basic abstraction, it can be:
