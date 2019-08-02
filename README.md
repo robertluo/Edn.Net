@@ -8,7 +8,14 @@ My attempt of implementing [Edn format](https://github.com/edn-format/edn) for .
 ```F#
 open Robertluo
 
-Edn.Parse "{:hello \"Edn\"}"
+Edn.parse "{:hello \"Edn\"}"
+```
+
+```C#
+var v = Robertluo.Edn.Parse("{:foo/bar 3}");
+
+//to use the value
+var m = v.IsEMap ? ((Edn.EMap) v).Item : null;
 ```
 
 ## Releases
