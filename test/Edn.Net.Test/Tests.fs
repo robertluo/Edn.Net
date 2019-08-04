@@ -57,10 +57,7 @@ let tests =
                   [true, ;ok
                    nil]
                    """
-
-              let expected =
-                  EVector [ EBool true
-                            ENull ]
+              let expected = Edn.Vec([|EBool true; ENull|])
               testParse input expected "should ok"
           testCase "can parse a nested map and other" <| fun _ ->
               let input = """

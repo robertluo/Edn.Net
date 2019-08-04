@@ -208,6 +208,9 @@ type Edn with
         {Ns = (if isNull(ns) then None else Some ns); Name = sym}
         |> EKeyword
 
+    static member Vec(elems) =
+        List.ofArray elems |> EVector
+
     /// Parse a EDN string to Edn data structure, if fail, throw a ParseException
     static member Parse str =
         match Edn.parse str with
