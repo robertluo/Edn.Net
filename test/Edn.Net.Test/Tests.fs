@@ -106,8 +106,8 @@ let test2 =
               let input =
                   EMap(Map.ofList [ (EKeyword { Ns = Some "foo"
                                                 Name = "bar" },
-                                     EVector [ EFloat 35.1
-                                               EBool false ])
+                                     Edn.VecOf [| EFloat 35.1
+                                                  EBool false |])
                                     (EKeyword { Ns = None
                                                 Name = "a" }, ENull) ])
 

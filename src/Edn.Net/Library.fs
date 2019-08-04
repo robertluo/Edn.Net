@@ -20,7 +20,7 @@ type Edn =
     | EBool of bool
     | EKeyword of Keyword
     | ESymbol of Keyword
-    | EVector of Edn list
+    | EVector of Edn array
     | ESet of Set<Edn>
     | EMap of Map<Edn, Edn>
     | EUuid of System.Guid //to support builtin uuid
@@ -40,7 +40,7 @@ type Edn =
         | ESymbol v -> "'" + v.ToString()
         | EVector v ->
             v
-            |> List.map (fun i -> i.ToString())
+            |> Array.map (fun i -> i.ToString())
             |> String.concat ", "
             |> sprintf "[%s]"
         | ESet v ->
@@ -164,7 +164,7 @@ module Edn =
 
     let listBetween sopen sclose pElement f =
         between (str sopen) (str sclose) (ws >>. many (pElement .>> ws) |>> f)
-    let evector = listBetween "[" "]" evalue EVector
+    let evector = listBetween "[" "]" evalue (List.toArray >> EVector)
     let eset = listBetween "#{" "}" evalue (Set.ofList >> ESet)
     let keyValue = evalue .>>. (ws >>. evalue)
     let emap = listBetween "{" "}" keyValue (Map.ofList >> EMap)
@@ -213,7 +213,7 @@ type Edn with
         |> EKeyword
 
     /// Shortcut for creating EVector from an array
-    static member VecOf(elems) = List.ofArray elems |> EVector
+    static member VecOf(elems) = EVector elems
 
     /// Shortcut for creating ESet from an array
     static member SetOf(elems) = Set.ofArray elems |> ESet
