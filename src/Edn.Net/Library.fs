@@ -205,7 +205,7 @@ exception ParseException of string * ParserError
 type Edn with
 
     /// Shortcut for creating EKeyword
-    static member OfKw(ns, sym) =
+    static member Kw(ns, sym) =
         { Ns =
               (if isNull (ns) then None
                else Some ns)
@@ -213,13 +213,13 @@ type Edn with
         |> EKeyword
 
     /// Shortcut for creating EVector from an array
-    static member OfVec(elems) = List.ofArray elems |> EVector
+    static member VecOf(elems) = List.ofArray elems |> EVector
 
     /// Shortcut for creating ESet from an array
-    static member OfSet(elems) = Set.ofArray elems |> ESet
+    static member SetOf(elems) = Set.ofArray elems |> ESet
 
     /// Shortcut for creating EMap from an array of k-v tuples
-    static member OfMap(elems) = Map.ofArray elems |> EMap
+    static member MapOf(elems) = Map.ofArray elems |> EMap
 
     /// Parse a EDN string to Edn data structure, if fail, throw a ParseException
     static member Parse str =

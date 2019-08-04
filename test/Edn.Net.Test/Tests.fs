@@ -43,11 +43,11 @@ let tests =
                          ("true", EBool true)
                          ("nil", ENull)
                          ("\"foo\"", EString "foo")
-                         (":foo/bar", Edn.OfKw("foo", "bar"))
-                         (":foo", Edn.OfKw(null, "foo"))
+                         (":foo/bar", Edn.Kw("foo", "bar"))
+                         (":foo", Edn.Kw(null, "foo"))
                          ("#{25.0, :foo1}",
-                          Edn.OfSet [| EFloat 25.0
-                                       Edn.OfKw(null, "foo1") |]) ]
+                          Edn.SetOf [| EFloat 25.0
+                                       Edn.Kw(null, "foo1") |]) ]
               for KeyValue(input, expected) in matrix do
                   testParse input expected "should parse"
           testCase "can skip comment" <| fun _ ->
@@ -57,7 +57,7 @@ let tests =
                    """
 
               let expected =
-                  Edn.OfVec([| EBool true
+                  Edn.VecOf([| EBool true
                                ENull |])
               testParse input expected "should ok"
           testCase "can parse a nested map and other" <| fun _ ->
@@ -67,17 +67,17 @@ let tests =
                   """
 
               let expected =
-                  Edn.OfMap [| (Edn.OfKw("foo", "bar"),
-                                Edn.OfVec [| EFloat 35.1
+                  Edn.MapOf [| (Edn.Kw("foo", "bar"),
+                                Edn.VecOf [| EFloat 35.1
                                              EBool false |])
-                               (Edn.OfKw(null, "a"), ENull) |]
+                               (Edn.Kw(null, "a"), ENull) |]
               testParse input expected "should match"
           testCase "clojure 1.9 map key compaction" <| fun _ ->
               let input = "#:foo{:id true, :bar/baz nil}"
 
               let expected =
-                  EMap(Map.ofList [ (Edn.OfKw("foo", "id"), EBool true)
-                                    (Edn.OfKw("bar", "baz"), ENull) ])
+                  EMap(Map.ofList [ (Edn.Kw("foo", "id"), EBool true)
+                                    (Edn.Kw("bar", "baz"), ENull) ])
               testParse input expected "should append ns to empty ns keys"
           testCase "tagged uuid" <| fun _ ->
               let input = "#uuid \"f81d4fae-7dec-11d0-a765-00a0c91e6bf6\""
@@ -95,11 +95,11 @@ let test2 =
     testList "ToString"
         [ testCase "keyword" <| fun _ ->
               let input =
-                  (Edn.OfKw(null, "foo"))
+                  (Edn.Kw(null, "foo"))
                       .ToString()
               Expect.equal input ":foo" "should like :foo"
               let input =
-                  (Edn.OfKw("foo", "bar"))
+                  (Edn.Kw("foo", "bar"))
                       .ToString()
               Expect.equal input ":foo/bar" "should contains ns"
           testCase "complex" <| fun _ ->
