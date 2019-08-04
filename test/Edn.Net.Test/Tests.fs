@@ -43,13 +43,11 @@ let tests =
                          ("true", EBool true)
                          ("nil", ENull)
                          ("\"foo\"", EString "foo")
-                         (":foo/bar",
-                          Edn.OfKw("foo", "bar"))
-                         (":foo",
-                          Edn.OfKw(null, "foo"))
+                         (":foo/bar", Edn.OfKw("foo", "bar"))
+                         (":foo", Edn.OfKw(null, "foo"))
                          ("#{25.0, :foo1}",
-                          ESet(Set.ofList [ EFloat 25.0
-                                            Edn.OfKw(null, "foo1") ])) ]
+                          Edn.OfSet [| EFloat 25.0
+                                       Edn.OfKw(null, "foo1") |]) ]
               for KeyValue(input, expected) in matrix do
                   testParse input expected "should parse"
           testCase "can skip comment" <| fun _ ->
@@ -57,7 +55,10 @@ let tests =
                   [true, ;ok
                    nil]
                    """
-              let expected = Edn.OfVec([|EBool true; ENull|])
+
+              let expected =
+                  Edn.OfVec([| EBool true
+                               ENull |])
               testParse input expected "should ok"
           testCase "can parse a nested map and other" <| fun _ ->
               let input = """
@@ -66,8 +67,10 @@ let tests =
                   """
 
               let expected =
-                  Edn.OfMap [|(Edn.OfKw("foo","bar"), Edn.OfVec [|EFloat 35.1; EBool false|])
-                              (Edn.OfKw(null, "a"), ENull)|]
+                  Edn.OfMap [| (Edn.OfKw("foo", "bar"),
+                                Edn.OfVec [| EFloat 35.1
+                                             EBool false |])
+                               (Edn.OfKw(null, "a"), ENull) |]
               testParse input expected "should match"
           testCase "clojure 1.9 map key compaction" <| fun _ ->
               let input = "#:foo{:id true, :bar/baz nil}"
@@ -115,8 +118,11 @@ let test2 =
 let testMisc =
     testList "Misc"
         [ testCase "Parse static method" <| fun _ ->
-            let input = "3"
-            Expect.equal (Edn.Parse input) (EInteger 3L) "ok"
-          testCase "when wrong format" <| fun _ ->
-            let input = "[3:foo"
-            Expect.throws (fun () -> (Edn.Parse input) |> ignore) "should throw"]
+              let input = "3"
+              Expect.equal (Edn.Parse input) (EInteger 3L) "ok"
+
+          testCase "when wrong format"
+          <| fun _ ->
+              let input = "[3:foo"
+              Expect.throws (fun () -> (Edn.Parse input) |> ignore)
+                  "should throw" ]
