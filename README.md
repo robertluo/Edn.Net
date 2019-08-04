@@ -16,6 +16,16 @@ var v = Robertluo.Edn.Parse("{:foo/bar 3}");
 
 //to use the value
 var m = v.IsEMap ? ((Edn.EMap) v).Item : null;
+
+// to create EDN value {:foo 3} in program
+var a = Edn.MapOf(new Tuple<Edn, Edn>[] {new Tuple<Edn, Edn>(Edn.Kw(null, "foo"), Edn.NewEInteger(3L))});
+// or simpler and clearer
+var a = Edn.Parse("{:foo 3}");
+
+// create a vector edn
+var b = Edn.VecOf(new Edn[] { Edn.Kw("foo", "bar"), Edn.NewEBool(false), Edn.NewEString("hello")});
+// or simpler
+var b = Edn.Parse("[:foo/bar, false, \"Hello\"]");
 ```
 
 ## Releases
