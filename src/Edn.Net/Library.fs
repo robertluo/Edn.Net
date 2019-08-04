@@ -203,6 +203,11 @@ module Edn =
 exception ParseException of string * ParserError
 
 type Edn with
+    /// Shortcut for create EKeyword
+    static member Kw(ns, sym) =
+        {Ns = (if isNull(ns) then None else Some ns); Name = sym}
+        |> EKeyword
+
     /// Parse a EDN string to Edn data structure, if fail, throw a ParseException
     static member Parse str =
         match Edn.parse str with
