@@ -55,7 +55,7 @@ type Edn =
             |> sprintf "{%s}"
         | EUuid uuid -> "#uuid \"" + uuid.ToString() + "\""
         | EInstant dt -> "#instant \"" + dt.ToString() + "\""
-    
+
 [<RequireQualifiedAccessAttribute>]
 module Edn =
     open System
@@ -157,10 +157,10 @@ module Edn =
     let esymbol = (str "'") >>. symbol |>> ESymbol
     // forward declare
     let evalue, evalueRef = createParserForwardedToRef<Edn, unit>()
-
     let comment = str ";" >>. skipRestOfLine true
+
     let ws =
-        skipSepBy (many (anyOf " ,\t\n\r")) comment 
+        skipSepBy (many (anyOf " ,\t\n\r")) comment
 
     let listBetween sopen sclose pElement f =
         between (str sopen) (str sclose) (ws >>. many (pElement .>> ws) |>> f)
@@ -198,11 +198,29 @@ module Edn =
 
     //-------------- Interface ---------------
     let parse = run evalue
-    
+
 //-------------- Attach functions to type --------------
 exception ParseException of string * ParserError
 
 type Edn with
+
+    /// Shortcut for creating EKeyword
+    static member Kw(ns, sym) =
+        { Ns =
+              (if isNull (ns) then None
+               else Some ns)
+          Name = sym }
+        |> EKeyword
+
+    /// Shortcut for creating EVector from an array
+    static member VecOf(elems) = List.ofArray elems |> EVector
+
+    /// Shortcut for creating ESet from an array
+    static member SetOf(elems) = Set.ofArray elems |> ESet
+
+    /// Shortcut for creating EMap from an array of k-v tuples
+    static member MapOf(elems) = Map.ofArray elems |> EMap
+
     /// Parse a EDN string to Edn data structure, if fail, throw a ParseException
     static member Parse str =
         match Edn.parse str with

@@ -43,16 +43,11 @@ let tests =
                          ("true", EBool true)
                          ("nil", ENull)
                          ("\"foo\"", EString "foo")
-                         (":foo/bar",
-                          EKeyword { Ns = Some("foo")
-                                     Name = "bar" })
-                         (":foo",
-                          EKeyword { Ns = None
-                                     Name = "foo" })
+                         (":foo/bar", Edn.Kw("foo", "bar"))
+                         (":foo", Edn.Kw(null, "foo"))
                          ("#{25.0, :foo1}",
-                          ESet(Set.ofList [ EFloat 25.0
-                                            EKeyword { Ns = None
-                                                       Name = "foo1" } ])) ]
+                          Edn.SetOf [| EFloat 25.0
+                                       Edn.Kw(null, "foo1") |]) ]
               for KeyValue(input, expected) in matrix do
                   testParse input expected "should parse"
           testCase "can skip comment" <| fun _ ->
@@ -62,8 +57,8 @@ let tests =
                    """
 
               let expected =
-                  EVector [ EBool true
-                            ENull ]
+                  Edn.VecOf([| EBool true
+                               ENull |])
               testParse input expected "should ok"
           testCase "can parse a nested map and other" <| fun _ ->
               let input = """
@@ -72,21 +67,17 @@ let tests =
                   """
 
               let expected =
-                  EMap(Map.ofList [ (EKeyword { Ns = Some "foo"
-                                                Name = "bar" },
-                                     EVector [ EFloat 35.1
-                                               EBool false ])
-                                    (EKeyword { Ns = None
-                                                Name = "a" }, ENull) ])
+                  Edn.MapOf [| (Edn.Kw("foo", "bar"),
+                                Edn.VecOf [| EFloat 35.1
+                                             EBool false |])
+                               (Edn.Kw(null, "a"), ENull) |]
               testParse input expected "should match"
           testCase "clojure 1.9 map key compaction" <| fun _ ->
               let input = "#:foo{:id true, :bar/baz nil}"
 
               let expected =
-                  EMap(Map.ofList [ (EKeyword { Ns = Some "foo"
-                                                Name = "id" }, EBool true)
-                                    (EKeyword { Ns = Some "bar"
-                                                Name = "baz" }, ENull) ])
+                  EMap(Map.ofList [ (Edn.Kw("foo", "id"), EBool true)
+                                    (Edn.Kw("bar", "baz"), ENull) ])
               testParse input expected "should append ns to empty ns keys"
           testCase "tagged uuid" <| fun _ ->
               let input = "#uuid \"f81d4fae-7dec-11d0-a765-00a0c91e6bf6\""
@@ -104,13 +95,11 @@ let test2 =
     testList "ToString"
         [ testCase "keyword" <| fun _ ->
               let input =
-                  (EKeyword { Ns = None
-                              Name = "foo" })
+                  (Edn.Kw(null, "foo"))
                       .ToString()
               Expect.equal input ":foo" "should like :foo"
               let input =
-                  (EKeyword { Ns = Some "foo"
-                              Name = "bar" })
+                  (Edn.Kw("foo", "bar"))
                       .ToString()
               Expect.equal input ":foo/bar" "should contains ns"
           testCase "complex" <| fun _ ->
@@ -129,8 +118,11 @@ let test2 =
 let testMisc =
     testList "Misc"
         [ testCase "Parse static method" <| fun _ ->
-            let input = "3"
-            Expect.equal (Edn.Parse input) (EInteger 3L) "ok"
-          testCase "when wrong format" <| fun _ ->
-            let input = "[3:foo"
-            Expect.throws (fun () -> (Edn.Parse input) |> ignore) "should throw"]
+              let input = "3"
+              Expect.equal (Edn.Parse input) (EInteger 3L) "ok"
+
+          testCase "when wrong format"
+          <| fun _ ->
+              let input = "[3:foo"
+              Expect.throws (fun () -> (Edn.Parse input) |> ignore)
+                  "should throw" ]
