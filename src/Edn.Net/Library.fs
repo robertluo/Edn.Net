@@ -197,7 +197,29 @@ module Edn =
                     esymbol; estring; etagged ] .>> ws
 
     //-------------- Interface ---------------
+    /// Parse a string into a Edn value
     let parse = run evalue
+
+    /// Get value from edn on path
+    let rec getIn (path : Edn list) (edn : Edn) : Edn =
+        match edn with
+        | EVector v ->
+            match path with
+            | [] -> edn
+            | x :: xs ->
+                match x with
+                | EInteger i -> v.GetValue i :?> Edn |> getIn xs
+                | _ -> failwith "vector can only support integer path"
+        | EMap m ->
+            match path with
+            | [] -> edn
+            | x :: xs -> Map.find x m |> getIn xs
+        | v ->
+            match path with
+            | [] -> edn
+            | _ :: _ ->
+                invalidOp
+                    (sprintf "Edn v (%s) does not support GetIn" (v.ToString()))
 
 //-------------- Attach functions to type --------------
 exception ParseException of string * ParserError
@@ -211,6 +233,9 @@ type Edn with
                else Some ns)
           Name = sym }
         |> EKeyword
+
+    /// Get value specified by path
+    member this.GetIn(path) = Edn.getIn (List.ofArray path) this
 
     /// Shortcut for creating EVector from an array
     static member VecOf(elems) = EVector elems

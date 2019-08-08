@@ -91,7 +91,7 @@ let tests =
               | v -> failtestf "not understandable: %A" v ]
 
 [<Tests>]
-let test2 =
+let testToString =
     testList "ToString"
         [ testCase "keyword" <| fun _ ->
               let input =
@@ -125,4 +125,18 @@ let testMisc =
           <| fun _ ->
               let input = "[3:foo"
               Expect.throws (fun () -> (Edn.Parse input) |> ignore)
+                  "should throw"
+
+          testCase "when get in a valid value"
+          <| fun _ ->
+              let input = Edn.Parse "[{:a 3 :b true} {:a 5 :b false}]"
+              Expect.equal (Edn.getIn [ EInteger 1L
+                                        Edn.Kw(null, "a") ] input) (EInteger 5L)
+                  "should find value"
+
+          testCase "when specify an invalid path"
+          <| fun _ ->
+              let input = Edn.Parse "[[1 \"ok\"]]"
+              Expect.throws
+                  (fun () -> Edn.getIn [ EInteger 2L ] input |> ignore)
                   "should throw" ]
