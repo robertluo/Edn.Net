@@ -43,6 +43,8 @@ WriteLine($"Get in: {c.GetIn(new Edn[] {Edn.NewEInteger(1L), Edn.Kw(null, "a")})
 ## Releases
 
  - 0.2.0 with all standard features implemented
+ - 0.3.0 with some constructor for c# programmer convinience
+ - 0.4.0 introduce `GetIn`
 
 ## Design
 
