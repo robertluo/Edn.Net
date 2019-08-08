@@ -5,6 +5,8 @@ My attempt of implementing [Edn format](https://github.com/edn-format/edn) for .
 
 ## Usage
 
+### Parse
+
 ```F#
 open Robertluo
 
@@ -26,6 +28,16 @@ var a = Edn.Parse("{:foo 3}");
 var b = Edn.VecOf(new Edn[] { Edn.Kw("foo", "bar"), Edn.NewEBool(false), Edn.NewEString("hello")});
 // or simpler
 var b = Edn.Parse("[:foo/bar, false, \"Hello\"]");
+```
+
+### GetIn
+
+`GetIn` can quickly pull value from a EDN value.
+
+```c#
+/// Get in can 
+var c = Edn.Parse("[{:a 3 :b \"ok\"} {:a 15, :b nil}]");
+WriteLine($"Get in: {c.GetIn(new Edn[] {Edn.NewEInteger(1L), Edn.Kw(null, "a")})}");
 ```
 
 ## Releases
