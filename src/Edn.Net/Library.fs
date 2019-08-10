@@ -200,26 +200,22 @@ module Edn =
     /// Parse a string into a Edn value
     let parse = run evalue
 
-    /// Get value from edn on path
-    let rec getIn (path : Edn list) (edn : Edn) : Edn =
-        match edn with
-        | EVector v ->
-            match path with
-            | [] -> edn
-            | x :: xs ->
+    let rec withPath f path edn =
+        match path with
+        | [] -> f edn
+        | x::xs ->
+            match edn with
+            | EVector v ->
                 match x with
-                | EInteger i -> v.GetValue i :?> Edn |> getIn xs
-                | _ -> failwith "vector can only support integer path"
-        | EMap m ->
-            match path with
-            | [] -> edn
-            | x :: xs -> Map.find x m |> getIn xs
-        | v ->
-            match path with
-            | [] -> edn
-            | _ :: _ ->
-                invalidOp
-                    (sprintf "Edn v (%s) does not support GetIn" (v.ToString()))
+                | EInteger i -> v.GetValue i :?> Edn |> withPath f xs
+                | _ -> failwith "Vector can only support integer path"
+            | EMap m ->
+                Map.find x m |> withPath f xs
+            | v ->
+                invalidOp (sprintf "Edn v (%s) does not support GetIn" (v.ToString()))
+
+    /// Get value from edn on path
+    let getIn = withPath id
 
 //-------------- Attach functions to type --------------
 exception ParseException of string * ParserError
