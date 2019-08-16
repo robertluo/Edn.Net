@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <PackageId>Robertluo.Edn</PackageId>
-    <version>0.4.0</version>
+    <version>0.4.1</version>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Library.fs" />
