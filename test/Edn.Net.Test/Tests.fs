@@ -35,6 +35,12 @@ let tests =
               let input = "2.1M"
               let expected = EDecimal 2.1M
               testParse input expected "should equal"
+        
+          testCase "string with escape characters" <| fun _ ->
+              let input = "\"f\\\"oo\""
+              let expected = EString "f\"oo"
+              testParse input expected "should pass"
+              
           testCase "when input is a valid edn string" <| fun _ ->
               let matrix =
                   dict [ ("-322.5", EFloat -322.5)
@@ -102,6 +108,11 @@ let testToString =
                   (Edn.Kw("foo", "bar"))
                       .ToString()
               Expect.equal input ":foo/bar" "should contains ns"
+          testCase "escape characters" <| fun _ ->
+              let input = EString "f\"oo"
+              let expected = "\"f\\\"oo\""
+              Expect.equal (input.ToString()) expected "should equal"
+              
           testCase "complex" <| fun _ ->
               let input =
                   EMap(Map.ofList [ (EKeyword { Ns = Some "foo"

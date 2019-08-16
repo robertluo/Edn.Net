@@ -31,7 +31,19 @@ type Edn =
         | EBool v ->
             if v then "true"
             else "false"
-        | EString s -> "\"" + s + "\""
+        | EString s -> 
+            let buf = System.Text.StringBuilder()
+            let replaceOrLeave c =
+                match c with
+                | '\r' -> buf.Append "\\r"
+                | '\n' -> buf.Append "\\n"
+                | '\t' -> buf.Append "\\t"
+                | '\b' -> buf.Append "\\b" 
+                | '"' -> buf.Append "\\\""
+                | _ -> buf.Append c
+            s.ToCharArray() |> Array.iter (replaceOrLeave >> ignore)
+            "\"" + buf.ToString() + "\""
+
         | EInteger v -> v.ToString()
         | EBigInt v -> v.ToString()
         | EFloat f -> f.ToString()
