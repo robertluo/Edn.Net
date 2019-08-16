@@ -40,7 +40,9 @@ type Edn =
                 | '\b' -> "\\b" 
                 | '"' -> "\\\""
                 | _ -> c.ToString()
-            s.ToCharArray() |> Array.map replaceOrLeave |> Array.toList |> System.String.Concat
+            let escapeStr =
+                s.ToCharArray() |> Array.map replaceOrLeave |> Array.toList |> System.String.Concat
+            "\"" + escapeStr + "\""
 
         | EInteger v -> v.ToString()
         | EBigInt v -> v.ToString()
