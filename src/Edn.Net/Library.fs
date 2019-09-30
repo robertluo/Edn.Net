@@ -124,7 +124,8 @@ module Edn =
 
     let stringLiteral : Parser<string, unit> =
         let escape =
-            anyOf "\"\\/bfnrt" |>> function
+            anyOf "\"\\bfnrt" |>> function
+            | '\\' -> "\\"
             | 'b' -> "\b"
             | 'f' -> "\u000C"
             | 'n' -> "\n"

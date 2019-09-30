@@ -43,6 +43,7 @@ let tests =
                          ("true", EBool true)
                          ("nil", ENull)
                          ("\"foo\"", EString "foo")
+                         ("\"\\\\fo\\\"o\"", EString "\\fo\"o")
                          (":foo/bar", Edn.Kw("foo", "bar"))
                          (":foo", Edn.Kw(null, "foo"))
                          ("#{25.0, :foo1}",
